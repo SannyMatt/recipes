@@ -24,18 +24,12 @@ export class RecipeService {
     ),
   ];
 
-  selectedRecipe: Recipe | undefined;
   constructor() {}
 
   getRecipes() {
     return this.recipes.slice();
   }
   getRecipeById(id: number) {
-    return this.recipes.find((recipe) => recipe.id === id) || this.recipes[0];
-  }
-  setSelectedRecipe(recipe: Recipe) {
-    this.selectedRecipe = recipe;
-
-    this.onRecipeChange.emit(recipe);
+    return this.recipes.find((recipe) => recipe.id === id);
   }
 }
