@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { NgForm } from '@angular/forms';
 import { Ingredient } from 'src/app/shared/ingredient.model';
 import { ShoppingListService } from '../shopping-list.service';
 
@@ -14,8 +15,9 @@ export class ShoppingEditComponent implements OnInit {
   constructor(private shoppingListService: ShoppingListService) {}
 
   ngOnInit(): void {}
-  onSubmit(e: Event) {
-    e.preventDefault();
+  onSubmit(e: NgForm) {
+    console.log(e,"e");
+    
     const name = this.name.nativeElement.value;
     const amount = this.amount.nativeElement.value;
 
