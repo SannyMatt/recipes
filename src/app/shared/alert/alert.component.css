@@ -1,0 +1,17 @@
+.backdrop {
+  inset: 0;
+  position: fixed;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.alert-box {
+  background: white;
+  padding: 2rem;
+}
+.alert-box-actions {
+  text-align: end;
+}

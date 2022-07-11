@@ -1,6 +1,11 @@
+<ng-template appPlaceholder [message]="error"></ng-template>
 <div class="row flex">
   <div class="col-xs-4 col-xs-offset-4">
-    <form #authForm="ngForm">
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+    <!-- <app-alert *ngIf="error" [message]="error"></app-alert> -->
+
+    <div *ngIf="isLoading">Loading...</div>
+    <form *ngIf="!isLoading" #authForm="ngForm" (ngSubmit)="onSubmit(authForm)">
       <div class="form-group">
         <label for="email"></label>
         <input
@@ -26,12 +31,19 @@
         />
       </div>
       <div>
-        <button class="btn btn-primary" [disabled]="authForm.invalid">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="authForm.invalid"
+        >
           {{ isLoginMode ? "Login" : "Sign Up" }}
         </button>
         |
         <button type="button" class="btn btn-primary" (click)="onSwitch()">
           Switch to {{ !isLoginMode ? "Login" : "Sign Up" }}
+        </button>
+        <button class="btn btn-primary" (click)="showErrorAlert('Hello')">
+          Showw
         </button>
       </div>
     </form>

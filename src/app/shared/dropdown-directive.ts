@@ -1,9 +1,6 @@
 import {
-  Directive,
-  ElementRef,
-  HostBinding,
-  HostListener,
-  Renderer2,
+  Directive, HostBinding,
+  HostListener
 } from '@angular/core';
 
 @Directive({
