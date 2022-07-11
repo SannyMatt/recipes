@@ -1,4 +1,4 @@
-<ng-template appPlaceholder [message]="error"></ng-template>
+<!-- <ng-template appPlaceholder [message]="error"></ng-template> -->
 <div class="row flex">
   <div class="col-xs-4 col-xs-offset-4">
     <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
@@ -42,9 +42,9 @@
         <button type="button" class="btn btn-primary" (click)="onSwitch()">
           Switch to {{ !isLoginMode ? "Login" : "Sign Up" }}
         </button>
-        <button class="btn btn-primary" (click)="showErrorAlert('Hello')">
-          Showw
-        </button>
+        <!-- <button class="btn btn-primary" (click)="showErrorAlert('Hello')">
+          Show dynamic component
+        </button> -->
       </div>
     </form>
   </div>

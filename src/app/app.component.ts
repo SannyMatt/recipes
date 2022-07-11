@@ -1,13 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  AbstractControl,
-  AsyncValidatorFn,
-  FormControl,
-  FormGroup,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
-import { Observable } from 'rxjs';
 import { AuthService } from './auth/auth.service';
 
 @Component({

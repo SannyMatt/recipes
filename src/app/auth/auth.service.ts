@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, tap, throwError } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import { UserModel } from './user.model.';
 
 interface AuthResponseData {
@@ -36,7 +37,9 @@ export class AuthService {
   }
   signUp(email: string, password: string) {
     return this.fetchFireBaseAuth({
-      url: 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyC2xDs0oQADsNfC2JDKfy_SH_O2X-Bxx2o',
+      url:
+        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
+        environment.FIREBASE_API_KEY,
       email,
       password,
     });
@@ -44,7 +47,9 @@ export class AuthService {
 
   login(email: string, password: string) {
     return this.fetchFireBaseAuth({
-      url: 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyC2xDs0oQADsNfC2JDKfy_SH_O2X-Bxx2o',
+      url:
+        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
+        environment.FIREBASE_API_KEY,
       email,
       password,
     });
