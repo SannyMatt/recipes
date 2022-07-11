@@ -13,6 +13,7 @@ interface AuthResponseData {
   localId: string;
   registered?: boolean;
 }
+const FB_API_KEY = environment.FIREBASE_API_KEY;
 @Injectable({
   providedIn: 'root',
 })
@@ -39,7 +40,7 @@ export class AuthService {
     return this.fetchFireBaseAuth({
       url:
         'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
-        environment.FIREBASE_API_KEY,
+        FB_API_KEY,
       email,
       password,
     });
@@ -48,8 +49,8 @@ export class AuthService {
   login(email: string, password: string) {
     return this.fetchFireBaseAuth({
       url:
-        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
-        environment.FIREBASE_API_KEY,
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' +
+        FB_API_KEY,
       email,
       password,
     });
