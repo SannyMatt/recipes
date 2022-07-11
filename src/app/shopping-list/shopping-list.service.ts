@@ -3,16 +3,12 @@ import { Subject } from 'rxjs';
 import { Ingredient } from '../shared/ingredient.model';
 import { v4 as uuidv4 } from 'uuid';
 
-const ingredients = [
-  new Ingredient(uuidv4(), 'apples', 5),
-  new Ingredient(uuidv4(), 'cucumber', 6),
-];
 @Injectable({
   providedIn: 'root',
 })
 export class ShoppingListService {
   onEdit = new Subject<string>();
-  private ingredients: Ingredient[] = ingredients;
+  private ingredients: Ingredient[] = [];
   onListChange = new Subject<Ingredient[]>();
 
   constructor() {}
