@@ -5,50 +5,62 @@ import { Ingredient } from 'src/app/shared/ingredient.model';
 
 import { ShoppingListService } from '../shopping-list.service';
 import { v4 as uuidv4 } from 'uuid';
+import { Store } from '@ngrx/store';
+import * as fromApp from '../../store/app.reducer';
+import {
+  addIngredient,
+  removeIngredient,
+  updateIngredient,
+} from '../store/shopping-list.actions';
+
 @Component({
   selector: 'app-shopping-edit',
   templateUrl: './shopping-edit.component.html',
   styleUrls: ['./shopping-edit.component.css'],
 })
 export class ShoppingEditComponent implements OnInit, OnDestroy {
-  constructor(private shoppingListService: ShoppingListService) {}
+  constructor(public store: Store<fromApp.AppState>) {}
   editSub: Subscription | undefined;
+  storeSub: Subscription | undefined;
   @ViewChild('f') form!: NgForm;
   igToEdit: Ingredient | undefined;
   ngOnInit(): void {
-    this.editSub = this.shoppingListService.onEdit.subscribe((id) => {
-      const editIngredient = this.shoppingListService.getIngredientById(id);
-      if (editIngredient) {
-        this.igToEdit = editIngredient;
-        this.form.setValue({
-          name: this.igToEdit.name,
-          amount: this.igToEdit.amount,
-        });
-      }
-    });
+    this.storeSub = this.store
+      .select('shoppingList')
+      .subscribe((shoppingListState) => {
+        if (shoppingListState.editedIngredient) {
+          this.igToEdit = shoppingListState.editedIngredient;
+          this.form.setValue({
+            name: this.igToEdit.name,
+            amount: this.igToEdit.amount,
+          });
+        }
+      });
   }
+
   onSubmit(form: NgForm) {
     const value = form.value;
 
     if (!this.igToEdit) {
       const id = uuidv4();
-      this.shoppingListService.addItem(
-        new Ingredient(id, value.name, value.amount)
+      this.store.dispatch(
+        addIngredient(new Ingredient(id, value.name, value.amount))
       );
     } else {
       const id = this.igToEdit?.id;
-      this.shoppingListService.editItem(
-        new Ingredient(id, value.name, value.amount)
+      this.store.dispatch(
+        updateIngredient(new Ingredient(id, value.name, value.amount))
       );
     }
     this.resetForm();
   }
   ngOnDestroy(): void {
     this.editSub?.unsubscribe();
+    this.storeSub?.unsubscribe();
   }
   onDelete() {
     if (!!this.igToEdit) {
-      this.shoppingListService.deliteItem(this.igToEdit.id);
+      this.store.dispatch(removeIngredient({ ingredientId: this.igToEdit.id }));
       this.resetForm();
     }
   }
