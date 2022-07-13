@@ -1,6 +1,5 @@
 import {
   Component,
-  ComponentFactoryResolver,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -8,11 +7,14 @@ import {
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { State, Store } from '@ngrx/store';
 import { lastValueFrom, Subscription } from 'rxjs';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceHolderDirective } from '../shared/placeholder/placeholder.directive';
-import { AuthService } from './auth.service';
 
+import { AuthService } from './auth.service';
+import * as fromApp from '../store/app.reducer';
+import { signInStart, signUpStart, clearError } from './store/auth.actions';
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html',
@@ -28,21 +30,21 @@ export class AuthComponent implements OnInit, OnDestroy {
   isLoading = false;
   error: string | null = null;
   constructor(
-    private authService: AuthService,
-    private router: Router,
-    private containerRef: ViewContainerRef
+    private containerRef: ViewContainerRef,
+    public store: Store<fromApp.AppState>
   ) {}
-
+  authSub?: Subscription;
   ngOnInit(): void {
-    this.userStatusSub = this.authService.userStatus.subscribe((user) => {
-      this.isAuthenticated = !!user;
-      if (this.isAuthenticated) {
-        this.router.navigate(['/recipes']);
+    this.authSub = this.store.select('auth').subscribe((authState) => {
+      if (authState.errorMessage) {
+        this.error = authState.errorMessage;
       }
+      this.isLoading = authState.loading;
     });
   }
   ngOnDestroy(): void {
     this.userStatusSub?.unsubscribe();
+    this.authSub?.unsubscribe();
   }
 
   onSwitch() {
@@ -51,41 +53,13 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   async onSubmit(form: NgForm) {
     if (form.invalid) return;
-    this.error = null;
+    this.store.dispatch(clearError());
     const { email, password } = form.value;
 
     if (this.isLoginMode) {
-      this.isLoading = true;
-      try {
-        const res = await lastValueFrom(
-          this.authService.login(email, password)
-        );
-      } catch (error) {
-        if (typeof error === 'string') {
-          this.error = error;
-        }
-        if (error instanceof Error) {
-          this.error = error.message;
-        }
-      } finally {
-        this.isLoading = false;
-      }
+      this.store.dispatch(signInStart({ email, password }));
     } else {
-      this.isLoading = true;
-      try {
-        const res = await lastValueFrom(
-          this.authService.signUp(email, password)
-        );
-      } catch (error) {
-        if (typeof error === 'string') {
-          this.error = error;
-        }
-        if (error instanceof Error) {
-          this.error = error.message;
-        }
-      } finally {
-        this.isLoading = false;
-      }
+      this.store.dispatch(signUpStart({ email, password }));
     }
   }
 

@@ -9,6 +9,8 @@ import { HeaderComponent } from './header/header.component';
 import { SharedModule } from './shared/shared.module';
 import { ShoppingListService } from './shopping-list/shopping-list.service';
 import { appReducer } from './store/app.reducer';
+import { EffectsModule } from '@ngrx/effects';
+import { AuthEffects } from './auth/store/auth.effects';
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent],
@@ -18,6 +20,7 @@ import { appReducer } from './store/app.reducer';
     AppRoutingModule,
     SharedModule,
     StoreModule.forRoot(appReducer),
+    EffectsModule.forRoot([AuthEffects]),
   ],
   providers: [
     ShoppingListService,

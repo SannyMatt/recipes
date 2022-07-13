@@ -1,17 +1,46 @@
 import { createReducer, on } from '@ngrx/store';
 import { UserModel } from '../user.model.';
-import { AuthTypes } from './auth.actions';
+import {
+  authenticate,
+  authenticationFailed,
+  autologin,
+  clearError,
+  logout,
+  signInStart,
+  signUpStart,
+} from './auth.actions';
 
 export interface State {
   user: UserModel | null;
+  errorMessage: string;
+  loading: boolean;
+  redirect: boolean;
 }
 const initialState: State = {
   user: null,
+  errorMessage: '',
+  loading: false,
+  redirect: false,
 };
-export function auth(state: State, action: AuthTypes) {
-  switch (action.type) {
-    default:
-      return state;
-  }
-}
-export const authReducer = createReducer(initialState, on(auth));
+
+export const authReducer = createReducer(
+  initialState,
+  on(authenticate, (state, { user, redirect }) => {
+    return { ...state, user, loading: false, redirect: redirect || false };
+  }),
+  on(signInStart, (state) => {
+    return { ...state, loading: true };
+  }),
+  on(signUpStart, (state) => {
+    return { ...state, loading: true };
+  }),
+  on(authenticationFailed, (state, { errorMessage }) => {
+    return { ...state, loading: false, errorMessage };
+  }),
+  on(clearError, (state) => ({ ...state, errorMessage: '' })),
+  on(autologin, (state) => state),
+  on(logout, (state) => ({
+    ...state,
+    user: null,
+  }))
+);
