@@ -3,14 +3,13 @@ import { NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { Ingredient } from 'src/app/shared/ingredient.model';
 
-import { ShoppingListService } from '../shopping-list.service';
-import { v4 as uuidv4 } from 'uuid';
 import { Store } from '@ngrx/store';
+import { v4 as uuidv4 } from 'uuid';
 import * as fromApp from '../../store/app.reducer';
 import {
   addIngredient,
   removeIngredient,
-  updateIngredient,
+  updateIngredient
 } from '../store/shopping-list.actions';
 
 @Component({

@@ -3,18 +3,20 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
-  ViewContainerRef,
+  ViewContainerRef
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
-import { State, Store } from '@ngrx/store';
-import { lastValueFrom, Subscription } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceHolderDirective } from '../shared/placeholder/placeholder.directive';
 
-import { AuthService } from './auth.service';
 import * as fromApp from '../store/app.reducer';
-import { signInStart, signUpStart, clearError } from './store/auth.actions';
+import {
+  clearError,
+  clearStore, signInStart,
+  signUpStart
+} from './store/auth.actions';
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html',
@@ -24,7 +26,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   @ViewChild(PlaceHolderDirective, { static: false })
   alertHost?: PlaceHolderDirective;
 
-  userStatusSub?: Subscription;
   isAuthenticated: boolean = false;
   isLoginMode = true;
   isLoading = false;
@@ -43,7 +44,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     });
   }
   ngOnDestroy(): void {
-    this.userStatusSub?.unsubscribe();
+    this.store.dispatch(clearStore());
     this.authSub?.unsubscribe();
   }
 

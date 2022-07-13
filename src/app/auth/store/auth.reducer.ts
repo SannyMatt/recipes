@@ -5,6 +5,7 @@ import {
   authenticationFailed,
   autologin,
   clearError,
+  clearStore,
   logout,
   signInStart,
   signUpStart,
@@ -38,6 +39,7 @@ export const authReducer = createReducer(
     return { ...state, loading: false, errorMessage };
   }),
   on(clearError, (state) => ({ ...state, errorMessage: '' })),
+  on(clearStore, () => initialState),
   on(autologin, (state) => state),
   on(logout, (state) => ({
     ...state,

@@ -1,9 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-
+import { Store } from '@ngrx/store';
+import { map, switchMap } from 'rxjs';
+import { AppState } from 'src/app/store/app.reducer';
+import { v4 as uuidv4 } from 'uuid';
 import { Recipe } from '../recipe.model';
-import { RecipeService } from '../recipe.service';
+import { addRecipe, updateRecipe } from '../store/recipes.actions';
+import { selectRecipeById } from '../store/recipes.selectors';
 
 @Component({
   selector: 'app-recipe-edit',
@@ -12,36 +16,39 @@ import { RecipeService } from '../recipe.service';
 })
 export class RecipeEditComponent implements OnInit, OnDestroy {
   recipeForm!: FormGroup;
-  id: string | undefined;
   currentRecipe: Recipe | undefined;
-
   constructor(
     public route: ActivatedRoute,
     public router: Router,
-    public recipeService: RecipeService,
-    public fb: FormBuilder
+    public fb: FormBuilder,
+    public store: Store<AppState>
   ) {}
 
-  get isEdit() {
-    return this.id;
-  }
   ngOnInit(): void {
-    this.route.params.subscribe((params: Params) => {
-      this.id = params['id'];
-      if (this.id) {
-        this.currentRecipe = this.recipeService.getRecipeById(this.id);
-      }
-      this.initForm();
-    });
+    this.route.params
+      .pipe(
+        map((params: Params) => {
+          return params['id'];
+        }),
+        switchMap((recipeId) => {
+          return this.store.select(selectRecipeById(recipeId));
+        })
+      )
+      .subscribe((recipe) => {
+        this.currentRecipe = recipe;
+
+        this.initForm();
+      });
   }
   private initForm() {
     const currentRecipe = this.currentRecipe;
+    let id = uuidv4();
     let name = '';
     let imagePath = '';
     let description = '';
     const ingredients: any = [];
-    const editMode = this.isEdit;
-    if (editMode) {
+    if (currentRecipe) {
+      id = currentRecipe.id;
       name = currentRecipe?.name || '';
       imagePath = currentRecipe?.imagePath || '';
       description = currentRecipe?.description || '';
@@ -59,6 +66,7 @@ export class RecipeEditComponent implements OnInit, OnDestroy {
       );
     }
     this.recipeForm = this.fb.group({
+      id: [id, Validators.required],
       name: [name, Validators.required],
       imagePath: [imagePath, Validators.required],
       description: [description, Validators.required],
@@ -88,18 +96,18 @@ export class RecipeEditComponent implements OnInit, OnDestroy {
   onNavigateBack() {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
-  onSubmit() {
-    if (this.isEdit) {
-      const isUpdateFailed = this.recipeService.updateRecipe(
-        this.id!,
-        this.recipeForm.value
-      );
 
-      if (isUpdateFailed) {
-        alert(isUpdateFailed);
-      }
+  onSubmit() {
+    const { name, ingredients, imagePath, description, id }: Recipe =
+      this.recipeForm.value;
+    const recipe = new Recipe(id, name, description, imagePath, ingredients);
+
+    if (this.currentRecipe) {
+      this.store.dispatch(
+        updateRecipe({ id: this.currentRecipe.id, recipe: recipe })
+      );
     } else {
-      this.recipeService.addRecipe(this.recipeForm.value);
+      this.store.dispatch(addRecipe(recipe));
     }
 
     this.onNavigateBack();

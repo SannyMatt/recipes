@@ -9,7 +9,6 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, switchMap, take } from 'rxjs';
 import { AppState } from '../store/app.reducer';
-import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthInterceptorService implements HttpInterceptor {

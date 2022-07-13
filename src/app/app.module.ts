@@ -7,10 +7,10 @@ import { AppComponent } from './app.component';
 import { AuthInterceptorService } from './auth/auth-interceptor.service';
 import { HeaderComponent } from './header/header.component';
 import { SharedModule } from './shared/shared.module';
-import { ShoppingListService } from './shopping-list/shopping-list.service';
 import { appReducer } from './store/app.reducer';
 import { EffectsModule } from '@ngrx/effects';
 import { AuthEffects } from './auth/store/auth.effects';
+import { RecipesEffect } from './recipes/store/recipes.effects';
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent],
@@ -20,10 +20,9 @@ import { AuthEffects } from './auth/store/auth.effects';
     AppRoutingModule,
     SharedModule,
     StoreModule.forRoot(appReducer),
-    EffectsModule.forRoot([AuthEffects]),
+    EffectsModule.forRoot([AuthEffects, RecipesEffect]),
   ],
   providers: [
-    ShoppingListService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptorService,

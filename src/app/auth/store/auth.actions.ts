@@ -8,6 +8,7 @@ export const AUTHENTICATION_FAILED = '[Auth] Authentication failed';
 export const AUTOLOGIN = '[Auth] AutoLogin';
 export const LOGOUT = '[Auth] Logout';
 export const CLEAR_ERROR = '[Auth] Clear error';
+export const CLEAR_STORE = '[Auth] Clear store';
 
 export const authenticate = createAction(
   AUTHENTICATE,
@@ -31,3 +32,4 @@ export const autologin = createAction(AUTOLOGIN);
 export const logout = createAction(LOGOUT);
 
 export const clearError = createAction(CLEAR_ERROR);
+export const clearStore = createAction(CLEAR_STORE);
