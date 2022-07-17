@@ -1,0 +1,68 @@
+<div *ngIf="!!(error | async)" class="alert alert-danger">
+  {{ error | async }}
+</div>
+<div *ngIf="confirmationMode | async" class="alert alert-success sign-up-alert">
+  <h3 class="sign-up-alert__title">Confirm your email address</h3>
+  <span
+    (click)="closeConfirmationMode()"
+    class="glyphicon glyphicon-remove sign-up-alert__icon"
+  ></span>
+
+  <p>
+    We have sent an email with a <b>confirmation link</b> to your email address.
+    In order to complete the sign-up process, please click the confirmation
+    link. If you do not receive a confirmation email, please check your spam
+    folder.
+  </p>
+</div>
+<form *ngIf="!(confirmationMode | async)" [formGroup]="signupForm">
+  <h3 style="text-align: center">Sign up</h3>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input
+      placeholder="Email"
+      type="email"
+      formControlName="email"
+      class="form-control"
+      required
+      email
+    />
+  </div>
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input
+      type="password"
+      id="password"
+      class="form-control"
+      placeholder="Password"
+      formControlName="password"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="fName">First Name</label>
+    <input
+      id="fName"
+      class="form-control"
+      placeholder="First Name"
+      formControlName="fname"
+    />
+  </div>
+  <div class="form-group">
+    <label for="lName">Last Name</label>
+    <input
+      id="lName"
+      class="form-control"
+      placeholder="Last Name"
+      formControlName="lname"
+    />
+  </div>
+
+  <button
+    class="btn btn-primary auth-btn"
+    (click)="signUp()"
+    [disabled]="!signupForm.valid"
+  >
+    Sign Up
+  </button>
+</form>

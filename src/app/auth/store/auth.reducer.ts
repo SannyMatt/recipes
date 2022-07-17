@@ -4,11 +4,18 @@ import {
   authenticate,
   authenticationFailed,
   autologin,
+  checkSession,
+  clearAuthStore,
   clearError,
-  clearStore,
+  closeConfirmationMode,
   logout,
   signInStart,
+  signInWithSIP,
+  signOut,
+  signOutFail,
+  signOutSuccess,
   signUpStart,
+  signUpSuccess,
 } from './auth.actions';
 
 export interface State {
@@ -16,12 +23,14 @@ export interface State {
   errorMessage: string;
   loading: boolean;
   redirect: boolean;
+  confirmationMode: boolean;
 }
 const initialState: State = {
   user: null,
   errorMessage: '',
   loading: false,
   redirect: false,
+  confirmationMode: false,
 };
 
 export const authReducer = createReducer(
@@ -32,6 +41,9 @@ export const authReducer = createReducer(
   on(signInStart, (state) => {
     return { ...state, loading: true };
   }),
+  on(signInWithSIP, (state) => {
+    return { ...state, loading: true };
+  }),
   on(signUpStart, (state) => {
     return { ...state, loading: true };
   }),
@@ -39,10 +51,30 @@ export const authReducer = createReducer(
     return { ...state, loading: false, errorMessage };
   }),
   on(clearError, (state) => ({ ...state, errorMessage: '' })),
-  on(clearStore, () => initialState),
+  on(clearAuthStore, () => initialState),
   on(autologin, (state) => state),
   on(logout, (state) => ({
     ...state,
+    loading: false,
     user: null,
-  }))
+  })),
+  on(checkSession, (state) => {
+    return { ...state, loading: true };
+  }),
+  on(signOut, (state) => ({
+    ...state,
+    loading: true,
+  })),
+  on(signOutSuccess, () => initialState),
+  on(signUpSuccess, (state) => ({
+    ...state,
+    confirmationMode: true,
+    loading: false,
+  })),
+  on(signOutFail, (state, { errorMessage }) => ({
+    ...state,
+    loading: false,
+    errorMessage,
+  })),
+  on(closeConfirmationMode, (state) => ({ ...state, confirmationMode: false }))
 );

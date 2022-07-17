@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-recepies-dev-214700-authRole",
+      "UnauthRoleArn": "arn:aws:iam::125040606390:role/amplify-recepies-dev-214700-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::125040606390:role/amplify-recepies-dev-214700-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-recepies-dev-214700-deployment",
+      "UnauthRoleName": "amplify-recepies-dev-214700-unauthRole",
+      "StackName": "amplify-recepies-dev-214700",
+      "StackId": "arn:aws:cloudformation:us-east-1:125040606390:stack/amplify-recepies-dev-214700/e636b370-0476-11ed-bc90-0e9da151acdb",
+      "AmplifyAppId": "dbzwsjfyim26o"
+    },
+    "categories": {
+      "auth": {
+        "recepies076c99c8": {}
+      }
+    }
+  }
+}

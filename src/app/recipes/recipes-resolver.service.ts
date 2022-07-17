@@ -21,16 +21,18 @@ export class RecipesResolverService implements Resolve<Recipe[]> {
     return this.store.select(selectRecipes).pipe(
       take(1),
       map((recipes) => {
+
         return recipes;
       }),
       switchMap((recipes) => {
         if (!recipes.length) {
-          this.store.dispatch(fetchRecipes());
+        //  this.store.dispatch(fetchRecipes());
+        return of(recipes || []);
           return this.actions$.pipe(
             ofType(setRecipes),
             take(1),
             map((recipes) => {
-              return recipes.recipes;
+              return recipes.recipes || [];
             })
           );
         } else {

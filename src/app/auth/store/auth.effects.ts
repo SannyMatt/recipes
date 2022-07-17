@@ -4,17 +4,24 @@ import {
   authenticate,
   authenticationFailed,
   autologin,
+  checkSession,
   logout,
   signInStart,
+  signInWithSIP,
+  signOut,
+  signOutFail,
+  signOutSuccess,
   signUpStart,
+  signUpSuccess,
 } from './auth.actions';
-import { catchError, exhaustMap, map, of, tap } from 'rxjs';
+import { catchError, exhaustMap, from, map, of, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { UserModel } from '../user.model.';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
-
+import { Auth } from 'aws-amplify';
+import { CognitoUser } from 'amazon-cognito-identity-js';
 export interface AuthResponseData {
   kind: string;
   idToken: string;
@@ -24,80 +31,154 @@ export interface AuthResponseData {
   localId: string;
   registered?: boolean;
 }
+export interface SignUpUserData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+export interface AuthResponseCognitoData {
+  kind: string;
+  idToken: string;
+  email: string;
+  refreshToken: string;
+  expiresIn: string;
+  localId: string;
+  registered?: boolean;
+}
 
+// () =>
+//   this.actions$.pipe(
+//     ofType(signUpStart),
+//     exhaustMap((action) => {
+//       return this.http
+//         .post<AuthResponseData>(
+//           'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
+//             environment.FIREBASE_API_KEY,
+//           {
+//             email: action.email,
+//             password: action.password,
+//             returnSecureToken: true,
+//           }
+//         )
+//         .pipe(
+//           map((resData) => {
+//             const user = handleAuthentication(
+//               +resData.expiresIn,
+//               resData.email,
+//               resData.localId,
+//               resData.idToken
+//             );
+
+//             return authenticate({ user, redirect: true });
+//           }),
+//           catchError((errorRes) => {
+//             return of(
+//               authenticationFailed({
+//                 errorMessage: getErrorMessage(errorRes.error),
+//               })
+//             );
+//           })
+//         );
+//     })
+//   );
 @Injectable()
 export class AuthEffects {
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(signInStart),
-      exhaustMap((action) => {
-        return this.http
-          .post<AuthResponseData>(
-            'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' +
-              environment.FIREBASE_API_KEY,
-            {
-              email: action.email,
-              password: action.password,
-              returnSecureToken: true,
-            }
-          )
-          .pipe(
-            map((resData) => {
-              const user = handleAuthentication(
-                +resData.expiresIn,
-                resData.email,
-                resData.localId,
-                resData.idToken
-              );
+      exhaustMap((actions) => {
+        return from(Auth.signIn(actions.email, actions.password)).pipe(
+          map((user: CognitoUser) => {
+            console.log(user, 'USER I NEED');
 
-              return authenticate({ user, redirect: true });
-            }),
-            catchError((errorRes) => {
-              console.log(errorRes, 'errorRes');
-
-              return of(
-                authenticationFailed({
-                  errorMessage: getErrorMessage(errorRes.error),
-                })
-              );
-            })
-          );
+            const authedUser = new UserModel('e', 'e', 'e', new Date());
+            return authenticate({ user: authedUser });
+          }),
+          catchError((errorRes) => {
+            return of(
+              authenticationFailed({
+                errorMessage: getErrorMessage(errorRes),
+              })
+            );
+          })
+        );
       })
     )
   );
+  loginSocialIdentityProvider$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(signInWithSIP),
+      exhaustMap((action) => {
+        action.provider;
+        return from(
+          Auth.federatedSignIn({
+            provider: action.provider,
+          })
+        ).pipe(
+          map((socialResult) => {
+            console.log(socialResult, 'socialResult');
+
+            return { type: ' ' };
+          })
+        );
+      })
+    )
+  );
+
+  signOut$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(signOut),
+      exhaustMap(() => {
+        return from(Auth.signOut()).pipe(
+          map(() => {
+            return signOutSuccess();
+          }),
+          catchError((error) => {
+            let errorMessage = 'An unknown error occured';
+            console.warn('Error on sign out: ', error);
+
+            if (error instanceof Error) {
+              errorMessage = error.message;
+            }
+
+            return of(signOutFail({ errorMessage }));
+          })
+        );
+      })
+    )
+  );
+
   signup$ = createEffect(() =>
     this.actions$.pipe(
       ofType(signUpStart),
       exhaustMap((action) => {
-        return this.http
-          .post<AuthResponseData>(
-            'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
-              environment.FIREBASE_API_KEY,
-            {
+        return from(
+          Auth.signUp({
+            username: action.email,
+            password: action.password,
+            attributes: {
               email: action.email,
-              password: action.password,
-              returnSecureToken: true,
-            }
-          )
-          .pipe(
-            map((resData) => {
-              const user = handleAuthentication(
-                +resData.expiresIn,
-                resData.email,
-                resData.localId,
-                resData.idToken
-              );
+              given_name: action.firstName,
+              family_name: action.lastName,
+            },
+          })
+        ).pipe(
+          map((signUpResult) => {
+            console.log(signUpResult, 'signUpResult');
 
-              return authenticate({ user, redirect: true });
-            }),
-            catchError((errorRes) => {
-              return of(
-                authenticationFailed({
-                  errorMessage: getErrorMessage(errorRes.error),
-                })
-              );
-            })
-          );
+            return signUpSuccess();
+          }),
+          catchError((errorRes) => {
+            console.log(errorRes, 'errorRes');
+
+            return of(
+              authenticationFailed({
+                errorMessage: getErrorMessage(errorRes),
+              })
+            );
+          })
+        );
       })
     )
   );
@@ -135,6 +216,40 @@ export class AuthEffects {
       })
     )
   );
+
+  checkSession$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(checkSession),
+      exhaustMap(() => {
+        return from(Auth.currentSession()).pipe(
+          map((user) => {
+            if (user) {
+              const idToken = user.getIdToken();
+              const expirationDuration =
+                new Date(idToken.payload['exp']).getTime() -
+                new Date().getTime();
+              const currentUser = new UserModel(
+                idToken.payload['email'],
+                idToken.payload['id'],
+                idToken.getJwtToken(),
+                new Date(expirationDuration)
+              );
+              return authenticate({ user: currentUser });
+            } else {
+              return authenticationFailed({ errorMessage: '' });
+            }
+          }),
+          catchError((error) => {
+            console.log(error, 'error');
+
+            return of(
+              authenticationFailed({ errorMessage: getErrorMessage(error) })
+            );
+          })
+        );
+      })
+    )
+  );
   redirect$ = createEffect(
     () => {
       return this.actions$.pipe(
@@ -156,7 +271,10 @@ export class AuthEffects {
         tap(() => {
           this.authService.clearLogoutTimer();
           localStorage.removeItem('userData');
-          this.router.navigate(['/auth']);
+          this.router.navigate(['/auth'], {
+            queryParamsHandling: 'merge',
+            preserveFragment: true,
+          });
         })
       ),
     { dispatch: false }
@@ -181,10 +299,10 @@ function handleAuthentication(
   return user;
 }
 
-function getErrorMessage(error: { error: { message: string } }): string {
+function getErrorMessage(error: { message: string }): string {
   let errorMessage = 'An Error occured';
 
-  const responseErrorMessage = error?.error?.message;
+  const responseErrorMessage = error?.message;
   switch (responseErrorMessage) {
     case 'EMAIL_EXISTS':
       errorMessage = 'This email exists Already';

@@ -3,10 +3,12 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { Hub } from 'aws-amplify';
 import { Subscription } from 'rxjs';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceHolderDirective } from '../shared/placeholder/placeholder.directive';
@@ -14,8 +16,9 @@ import { PlaceHolderDirective } from '../shared/placeholder/placeholder.directiv
 import * as fromApp from '../store/app.reducer';
 import {
   clearError,
-  clearStore, signInStart,
-  signUpStart
+  clearAuthStore,
+  signInStart,
+  signUpStart,
 } from './store/auth.actions';
 @Component({
   selector: 'app-auth',
@@ -30,12 +33,11 @@ export class AuthComponent implements OnInit, OnDestroy {
   isLoginMode = true;
   isLoading = false;
   error: string | null = null;
-  constructor(
-    private containerRef: ViewContainerRef,
-    public store: Store<fromApp.AppState>
-  ) {}
+  constructor(public store: Store<fromApp.AppState>, public router: Router) {}
   authSub?: Subscription;
   ngOnInit(): void {
+
+
     this.authSub = this.store.select('auth').subscribe((authState) => {
       if (authState.errorMessage) {
         this.error = authState.errorMessage;
@@ -44,7 +46,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     });
   }
   ngOnDestroy(): void {
-    this.store.dispatch(clearStore());
+    this.store.dispatch(clearAuthStore());
     this.authSub?.unsubscribe();
   }
 
@@ -60,7 +62,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     if (this.isLoginMode) {
       this.store.dispatch(signInStart({ email, password }));
     } else {
-      this.store.dispatch(signUpStart({ email, password }));
+      // this.store.dispatch(signUpStart({ email, password }));
     }
   }
 

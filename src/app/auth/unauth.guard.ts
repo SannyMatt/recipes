@@ -8,13 +8,14 @@ import {
   UrlTree,
 } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { Auth } from 'aws-amplify';
 import { map, Observable, take } from 'rxjs';
 import { AppState } from '../store/app.reducer';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthGuard implements CanActivate, CanActivateChild {
+export class UnathGuard implements CanActivate, CanActivateChild {
   constructor(private router: Router, private store: Store<AppState>) {}
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -24,17 +25,21 @@ export class AuthGuard implements CanActivate, CanActivateChild {
     | UrlTree
     | Observable<boolean | UrlTree>
     | Promise<boolean | UrlTree> {
-    return this.store.select('auth').pipe(
-      take(1),
-      map((user) => {
-        const isAuth = !!user.user;
-        if (isAuth) {
-          return !!user.user;
-        }
-
-        return this.router.createUrlTree(['/auth']);
+      console.log(route,"route UNAUTH");
+      return Auth.currentAuthenticatedUser()
+      .then(() => {
+        this.router.navigate(['auth/profile',{
+          queryParamsHandling: 'merge',
+          preserveFragment: true,
+          queryParams: {},
+        }]);
+        return false;
       })
-    );
+      .catch(() => {
+        console.log("UNAUTH CATCH");
+
+        return true;
+      });
   }
   canActivateChild(
     childRoute: ActivatedRouteSnapshot,

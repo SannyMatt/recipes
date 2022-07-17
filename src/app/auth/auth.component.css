@@ -1,0 +1,12 @@
+.auth-content {
+  max-width: 300px;
+  margin: 0 auto;
+}
+.auth-progress {
+  margin-bottom: 5px;
+  max-height: 4px;
+}
+
+.hide-progress {
+  visibility: hidden;
+}

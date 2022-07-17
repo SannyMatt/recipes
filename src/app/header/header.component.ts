@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
+import { Hub } from 'aws-amplify';
+import { map, Observable, Subscription, tap } from 'rxjs';
 
-import { logout } from '../auth/store/auth.actions';
+import { logout, signOut } from '../auth/store/auth.actions';
 import { fetchRecipes, storeRecipes } from '../recipes/store/recipes.actions';
 import { AppState } from '../store/app.reducer';
 
@@ -12,14 +14,17 @@ import { AppState } from '../store/app.reducer';
   styleUrls: ['./header.component.css'],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  isAuthenticated: boolean = false;
+  isAuthenticated?: Observable<boolean>;
+  @Input('isCheckingSession') isCheckingSession: boolean = true;
   storeSub?: Subscription;
-  constructor(private store: Store<AppState>) {}
-  ngOnInit(): void {
-    this.storeSub = this.store.select('auth').subscribe((user) => {
-      this.isAuthenticated = !!user.user;
-    });
+  constructor(private store: Store<AppState>) {
+    this.isAuthenticated = this.store.select('auth').pipe(
+      map((auth) => {
+        return !!auth.user;
+      })
+    );
   }
+  ngOnInit(): void {}
   ngOnDestroy(): void {
     this.storeSub?.unsubscribe();
   }
@@ -31,6 +36,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.store.dispatch(fetchRecipes());
   }
   logout() {
-    this.store.dispatch(logout());
+    this.store.dispatch(signOut());
   }
 }
