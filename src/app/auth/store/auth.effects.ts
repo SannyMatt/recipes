@@ -1,10 +1,18 @@
-import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Store } from '@ngrx/store';
+import { CognitoUser } from 'amazon-cognito-identity-js';
+import { Auth } from 'aws-amplify';
+import { catchError, exhaustMap, from, map, of, tap } from 'rxjs';
+import { AppState } from 'src/app/store/app.reducer';
+import { AuthService } from '../auth.service';
+import { UserModel } from '../user.model.';
 import {
   authenticate,
   authenticationFailed,
-  autologin,
   checkSession,
+  confirmationWithSignInStart,
   logout,
   signInStart,
   signInWithSIP,
@@ -14,14 +22,6 @@ import {
   signUpStart,
   signUpSuccess,
 } from './auth.actions';
-import { catchError, exhaustMap, from, map, of, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
-import { UserModel } from '../user.model.';
-import { Router } from '@angular/router';
-import { AuthService } from '../auth.service';
-import { Auth } from 'aws-amplify';
-import { CognitoUser } from 'amazon-cognito-identity-js';
 export interface AuthResponseData {
   kind: string;
   idToken: string;
@@ -90,17 +90,75 @@ export class AuthEffects {
       exhaustMap((actions) => {
         return from(Auth.signIn(actions.email, actions.password)).pipe(
           map((user: CognitoUser) => {
-            console.log(user, 'USER I NEED');
+            const token = user.getSignInUserSession()?.getIdToken();
+            const signedUser = token?.payload;
 
-            const authedUser = new UserModel('e', 'e', 'e', new Date());
-            return authenticate({ user: authedUser });
+            const authedUser = new UserModel(
+              signedUser?.['email'] || '',
+              signedUser?.['sub'] || '',
+              token?.getJwtToken() || '',
+              new Date(
+                signedUser?.['email']?.['exp'] || new Date().getTime() * 1000
+              )
+            );
+
+            return authenticate({ user: authedUser, redirect: true });
           }),
           catchError((errorRes) => {
-            return of(
-              authenticationFailed({
-                errorMessage: getErrorMessage(errorRes),
-              })
-            );
+            console.log(errorRes, 'Error res <<<<<<<');
+
+            const message = getErrorMessage(errorRes);
+            const errorState = {
+              errorMessage: message,
+              userNotConfirmed: false,
+            };
+
+            switch (message) {
+              case 'User is not confirmed.':
+                errorState.userNotConfirmed = true;
+                break;
+            }
+
+            return of(authenticationFailed(errorState));
+          })
+        );
+      })
+    )
+  );
+  confirmationWithLogin$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(confirmationWithSignInStart),
+      exhaustMap(({ password, email, confirmationCode }) => {
+        return from(Auth.confirmSignUp(email, confirmationCode)).pipe(
+          exhaustMap((data) => {
+            if (data === 'SUCCESS') {
+              return of(
+                signInStart({ email, password, userNotConfirmed: false })
+              );
+            } else {
+              return of(authenticationFailed({ errorMessage: data }));
+            }
+          }),
+          catchError((errorRes) => {
+            const errorState = {
+              errorMessage: '',
+              userNotConfirmed: false,
+            };
+
+            const message = getErrorMessage(errorRes);
+
+            switch (message) {
+              case 'User is not confirmed.':
+                errorState.userNotConfirmed = true;
+                break;
+
+              default:
+                errorState.errorMessage = message;
+                break;
+            }
+            console.log(message, 'message');
+
+            return of(authenticationFailed(errorState));
           })
         );
       })
@@ -125,14 +183,13 @@ export class AuthEffects {
       })
     )
   );
-
   signOut$ = createEffect(() =>
     this.actions$.pipe(
       ofType(signOut),
       exhaustMap(() => {
         return from(Auth.signOut()).pipe(
           map(() => {
-            return signOutSuccess();
+            return signOutSuccess({ redirect: true });
           }),
           catchError((error) => {
             let errorMessage = 'An unknown error occured';
@@ -148,7 +205,6 @@ export class AuthEffects {
       })
     )
   );
-
   signup$ = createEffect(() =>
     this.actions$.pipe(
       ofType(signUpStart),
@@ -164,10 +220,11 @@ export class AuthEffects {
             },
           })
         ).pipe(
-          map((signUpResult) => {
-            console.log(signUpResult, 'signUpResult');
-
-            return signUpSuccess();
+          map(() => {
+            return signUpSuccess({
+              email: action.email,
+              password: action.password,
+            });
           }),
           catchError((errorRes) => {
             console.log(errorRes, 'errorRes');
@@ -179,40 +236,6 @@ export class AuthEffects {
             );
           })
         );
-      })
-    )
-  );
-  autoLogin$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(autologin),
-      map((action) => {
-        const localUser = localStorage.getItem('userData');
-        if (!localUser) {
-          return { type: 'NA' };
-        }
-        const userData: {
-          email: string;
-          id: string;
-          _token: string;
-          _tokenExpirationDate: string;
-        } = JSON.parse(localUser);
-
-        const loadedUser = new UserModel(
-          userData.email,
-          userData.id,
-          userData._token,
-          new Date(userData._tokenExpirationDate)
-        );
-
-        if (loadedUser.token) {
-          const expirationDuration =
-            new Date(userData._tokenExpirationDate).getTime() -
-            new Date().getTime();
-          this.authService.setLogoutTimer(expirationDuration);
-
-          return authenticate({ user: loadedUser });
-        }
-        return { type: 'NA' };
       })
     )
   );
@@ -250,7 +273,7 @@ export class AuthEffects {
       })
     )
   );
-  redirect$ = createEffect(
+  redirectHome$ = createEffect(
     () => {
       return this.actions$.pipe(
         ofType(authenticate),
@@ -263,7 +286,19 @@ export class AuthEffects {
     },
     { dispatch: false }
   );
-
+  redirectLogin$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(signOutSuccess),
+        tap((signOutSuccess) => {
+          if (signOutSuccess.redirect) {
+            this.router.navigate(['/auth/sign-in']);
+          }
+        })
+      );
+    },
+    { dispatch: false }
+  );
   authLogout$ = createEffect(
     () =>
       this.actions$.pipe(
@@ -281,7 +316,7 @@ export class AuthEffects {
   );
   constructor(
     private actions$: Actions,
-    private http: HttpClient,
+    private store: Store<AppState>,
     private router: Router,
     private authService: AuthService
   ) {}

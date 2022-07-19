@@ -2,23 +2,18 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  ViewChild,
-  ViewContainerRef,
+  ViewChild
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Hub } from 'aws-amplify';
 import { Subscription } from 'rxjs';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceHolderDirective } from '../shared/placeholder/placeholder.directive';
 
 import * as fromApp from '../store/app.reducer';
 import {
-  clearError,
-  clearAuthStore,
-  signInStart,
-  signUpStart,
+  clearAuthStore, clearError
 } from './store/auth.actions';
 @Component({
   selector: 'app-auth',
@@ -36,8 +31,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   constructor(public store: Store<fromApp.AppState>, public router: Router) {}
   authSub?: Subscription;
   ngOnInit(): void {
-
-
     this.authSub = this.store.select('auth').subscribe((authState) => {
       if (authState.errorMessage) {
         this.error = authState.errorMessage;
@@ -58,12 +51,6 @@ export class AuthComponent implements OnInit, OnDestroy {
     if (form.invalid) return;
     this.store.dispatch(clearError());
     const { email, password } = form.value;
-
-    if (this.isLoginMode) {
-      this.store.dispatch(signInStart({ email, password }));
-    } else {
-      // this.store.dispatch(signUpStart({ email, password }));
-    }
   }
 
   showErrorAlert(message: string) {

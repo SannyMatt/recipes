@@ -11,6 +11,8 @@ import { appReducer } from './store/app.reducer';
 import { EffectsModule } from '@ngrx/effects';
 import { AuthEffects } from './auth/store/auth.effects';
 import { RecipesEffect } from './recipes/store/recipes.effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from 'src/environments/environment';
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent],
@@ -21,6 +23,10 @@ import { RecipesEffect } from './recipes/store/recipes.effects';
     SharedModule,
     StoreModule.forRoot(appReducer),
     EffectsModule.forRoot([AuthEffects, RecipesEffect]),
+    StoreDevtoolsModule.instrument({
+      maxAge: 25, // Retains last 25 states
+      logOnly: environment.production, // Restrict extension to log-only mode
+    }),
   ],
   providers: [
     {

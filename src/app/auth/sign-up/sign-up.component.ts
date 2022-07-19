@@ -1,16 +1,20 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { AppState } from 'src/app/store/app.reducer';
 import {
-  clearAuthStore, closeConfirmationMode,
-  signUpStart
+  clearAuthSignUpStore,
+  clearError,
+  closeConfirmationMode,
+  signInFromConfirmationMode,
+  signUpStart,
 } from '../store/auth.actions';
 import { SignUpUserData } from '../store/auth.effects';
 import {
   selectAuthStoreConfirmationState,
-  selectAuthStoreError
+  selectAuthStoreError,
 } from '../store/auth.selectors';
 
 @Component({
@@ -47,7 +51,11 @@ export class SignUpComponent implements OnInit, OnDestroy {
     return this.signupForm.get('phone');
   }
 
-  constructor(private store: Store<AppState>) {}
+  constructor(
+    private store: Store<AppState>,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   getEmailInputError() {
     if (this.emailInput?.hasError('email')) {
@@ -80,6 +88,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
       firstName: this.fnameInput?.value,
       lastName: this.lnameInput?.value,
     };
+    this.store.dispatch(clearError());
     this.store.dispatch(signUpStart(signUpFormValues));
   }
   getError(error: any) {
@@ -87,20 +96,25 @@ export class SignUpComponent implements OnInit, OnDestroy {
   }
 
   closeConfirmationMode() {
+    this.signupForm.reset();
     this.store.dispatch(closeConfirmationMode());
   }
 
-  authStoreSub?: Subscription;
-  ngOnInit(): void {
-    this.authStoreSub = this.store.select('auth').subscribe((authState) => {
-      if (authState.confirmationMode) {
-        this.signupForm.reset();
-      }
-    });
+  signInWithConfirmation() {
+    this.store.dispatch(
+      signInFromConfirmationMode({
+        email: this.signupForm.value.email,
+        password: this.signupForm.value.password,
+      })
+    );
+
+    this.router.navigate(['../sign-in'], { relativeTo: this.route });
   }
+
+  authStoreSub?: Subscription;
+  ngOnInit(): void {}
   ngOnDestroy(): void {
-    this.closeConfirmationMode();
-    this.store.dispatch(clearAuthStore());
+    this.store.dispatch(clearAuthSignUpStore());
     this.authStoreSub?.unsubscribe();
   }
 }

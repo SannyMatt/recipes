@@ -25,20 +25,12 @@ export class AuthGuard implements CanActivate, CanActivateChild {
     | UrlTree
     | Observable<boolean | UrlTree>
     | Promise<boolean | UrlTree> {
-
-
-      console.log(route,"route AUTH");
-
     return Auth.currentAuthenticatedUser()
       .then(() => {
         return true;
       })
       .catch(() => {
-        this.router.navigate(['auth/sign-in'], {
-          queryParamsHandling: 'merge',
-          preserveFragment: true,
-          queryParams: {},
-        });
+        this.router.navigate(['auth/sign-in'],);
         return false;
       });
   }

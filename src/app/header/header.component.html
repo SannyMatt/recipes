@@ -1,6 +1,6 @@
 <div class="header">
   <div class="container">
-    <div class="navbar navbar-inverse header-nav" >
+    <div class="navbar navbar-inverse header-nav">
       <div class="container-fluid">
         <div class="navbar-header">
           <a routerLink="/" class="navbar-brand">Recipe book</a>
@@ -41,12 +41,7 @@
               </ul>
             </li>
             <li *ngIf="(isAuthenticated | async) && !isCheckingSession">
-              <a
-                routerLink="/auth/profile"
-                style="cursor: pointer"
-                (click)="logout()"
-                >Logout</a
-              >
+              <a style="cursor: pointer" (click)="logout()">Logout</a>
             </li>
 
             <li *ngIf="(isAuthenticated | async) && !isCheckingSession">

@@ -1,6 +1,7 @@
 <div *ngIf="!!error" class="alert alert-danger">{{ error }}</div>
+
 <form [formGroup]="signinForm">
-  <h3 style="text-align:center;">Sign in to your account</h3>
+  <h3 style="text-align: center">Sign in to your account</h3>
   <div class="form-group">
     <label for="email">Email</label>
     <input
@@ -13,25 +14,53 @@
     />
   </div>
   <div class="form-group">
-    <label for="password">Password</label>
+    <fieldset [disabled]="inMemoryCredentials">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        class="form-control"
+        placeholder="Password"
+        formControlName="password"
+        required
+      />
+    </fieldset>
+  </div>
+  <div *ngIf="confirmationControl" class="form-group">
+    <label for="confirmationCode">Confirmation Code</label>
     <input
-      id="password"
+      id="confirmationCode"
       class="form-control"
-      placeholder="Password"
-      formControlName="password"
+      placeholder="confirmation Code"
+      formControlName="confirmationCode"
       required
     />
+    <p *ngIf="confirmationControl">
+      Switch to <a (click)="switchToLoginMode()">Sign in</a>
+    </p>
   </div>
   <button
     class="btn btn-primary auth-btn"
     (click)="signIn()"
     [disabled]="!signinForm.valid"
   >
-    Sign In
+    {{
+      confirmationControl
+        ? (isLoading | async)
+          ? "Confirming.."
+          : "Confirm"
+        : (isLoading | async)
+        ? "Sign In..."
+        : "Sign In"
+    }}
   </button>
   <p style="text-align: center">or</p>
   <button class="btn btn-primary auth-btn" (click)="signInWithGoogle()">
     Sign In with Google
   </button>
+  <p *ngIf="!confirmationControl">
+    Don't confirmed account? <a (click)="switchToConfirmMode()">Confirm</a>
+  </p>
+
   <p>Don't have an account? <a routerLink="/auth/sign-up">Sign up</a></p>
 </form>

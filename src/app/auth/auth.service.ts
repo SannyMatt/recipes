@@ -1,20 +1,20 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject } from 'rxjs';
 import { AppState } from '../store/app.reducer';
-import { logout } from './store/auth.actions';
+import { signOut } from './store/auth.actions';
 import { UserModel } from './user.model.';
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService implements OnInit {
+export class AuthService implements OnInit, OnDestroy {
   private tokenExpirationTimer: any;
   userStatus = new BehaviorSubject<UserModel | null>(null);
   constructor(private store: Store<AppState>) {}
 
   setLogoutTimer(expirationDuration: number) {
     this.tokenExpirationTimer = setTimeout(() => {
-      this.store.dispatch(logout());
+      this.store.dispatch(signOut());
     }, expirationDuration);
   }
 
@@ -25,7 +25,6 @@ export class AuthService implements OnInit {
     }
   }
 
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
+  ngOnDestroy(): void {}
 }

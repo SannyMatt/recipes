@@ -5,9 +5,9 @@ import {
   Router,
 } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Auth, Hub } from 'aws-amplify';
+import { Hub } from 'aws-amplify';
 import { AuthService } from './auth/auth.service';
-import { autologin, checkSession } from './auth/store/auth.actions';
+import { checkSession } from './auth/store/auth.actions';
 import { AppState } from './store/app.reducer';
 
 @Component({
@@ -31,12 +31,21 @@ export class AppComponent implements OnInit {
     });
   }
   ngOnInit(): void {
-    console.log(
-      this.route.fragment.subscribe((...fragment) => {
-        console.log(fragment, 'fragment!!!');
-      }),
-      'ROUTE FROM APP'
-    );
+    Hub.listen('auth', (data) => {
+      console.log(data, 'data');
+
+      switch (data.payload.message) {
+        case 'signIn':
+          console.log('signIn', data);
+          break;
+        case 'signOut':
+          console.log('signOut', data);
+          break;
+
+        default:
+          break;
+      }
+    });
 
     this.store.dispatch(checkSession());
   }

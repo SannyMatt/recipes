@@ -9,11 +9,12 @@
   ></span>
 
   <p>
-    We have sent an email with a <b>confirmation link</b> to your email address.
-    In order to complete the sign-up process, please click the confirmation
-    link. If you do not receive a confirmation email, please check your spam
-    folder.
+    We have sent an email with a <b>confirmation code</b> to your email address.
+    In order to complete the sign-up process, please type the confirmation code
+    in sign in form. If you do not receive a confirmation email, please check
+    your spam folder.
   </p>
+  <a (click)="signInWithConfirmation()">Sign in with confirmation code</a>
 </div>
 <form *ngIf="!(confirmationMode | async)" [formGroup]="signupForm">
   <h3 style="text-align: center">Sign up</h3>

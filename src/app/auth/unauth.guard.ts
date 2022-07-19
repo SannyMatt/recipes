@@ -5,11 +5,11 @@ import {
   CanActivateChild,
   Router,
   RouterStateSnapshot,
-  UrlTree,
+  UrlTree
 } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Auth } from 'aws-amplify';
-import { map, Observable, take } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AppState } from '../store/app.reducer';
 
 @Injectable({
@@ -25,19 +25,12 @@ export class UnathGuard implements CanActivate, CanActivateChild {
     | UrlTree
     | Observable<boolean | UrlTree>
     | Promise<boolean | UrlTree> {
-      console.log(route,"route UNAUTH");
-      return Auth.currentAuthenticatedUser()
+    return Auth.currentAuthenticatedUser()
       .then(() => {
-        this.router.navigate(['auth/profile',{
-          queryParamsHandling: 'merge',
-          preserveFragment: true,
-          queryParams: {},
-        }]);
+        this.router.navigate(['auth/profile']);
         return false;
       })
       .catch(() => {
-        console.log("UNAUTH CATCH");
-
         return true;
       });
   }
