@@ -21,6 +21,9 @@ import { selectIsLoading } from '../store/auth.selectors';
   styleUrls: ['./sign-in.component.css'],
 })
 export class SignInComponent implements OnInit, OnDestroy {
+  constructor(public store: Store<AppState>) {}
+
+  // State/Store
   error: string = '';
   isLoading: Observable<boolean> = this.store.select(selectIsLoading);
   confirmationControl: boolean = false;
@@ -29,19 +32,7 @@ export class SignInComponent implements OnInit, OnDestroy {
   inMemoryEmail: string = '';
   inMemoryPassword: string = '';
 
-  signinForm: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.email, Validators.required]),
-    password: new FormControl('', [Validators.required, Validators.min(6)]),
-  });
-
-  get emailInput() {
-    return this.signinForm.get('email');
-  }
-  get passwordInput() {
-    return this.signinForm.get('password');
-  }
-  constructor(public store: Store<AppState>) {}
-
+  // INIT
   authStoreSub?: Subscription;
   ngOnInit(): void {
     //Disable/Enable password in case if we have the currentInmemory Email
@@ -86,10 +77,25 @@ export class SignInComponent implements OnInit, OnDestroy {
         }
       );
   }
+
+  // DESTROY
   ngOnDestroy(): void {
     this.store.dispatch(clearAuthStore());
     this.authStoreSub?.unsubscribe();
   }
+  // FORM
+  signinForm: FormGroup = new FormGroup({
+    email: new FormControl('', [Validators.email, Validators.required]),
+    password: new FormControl('', [Validators.required, Validators.min(6)]),
+  });
+  get emailInput() {
+    return this.signinForm.get('email');
+  }
+  get passwordInput() {
+    return this.signinForm.get('password');
+  }
+
+  // [Form] Submit
   signIn() {
     const values = this.signinForm.value;
     this.store.dispatch(clearError());
@@ -111,13 +117,13 @@ export class SignInComponent implements OnInit, OnDestroy {
       );
     }
   }
-
   signInWithGoogle() {
     this.store.dispatch(
       signInWithSIP({ provider: CognitoHostedUIIdentityProvider.Google })
     );
   }
 
+  // [Form] Mode
   switchToConfirmMode() {
     this.store.dispatch(switchToConfirmMode());
   }

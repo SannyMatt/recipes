@@ -1,11 +1,9 @@
-<!-- <ng-template appPlaceholder [message]="error"></ng-template> -->
-
-<!-- <div *ngIf="error" class="alert alert-danger">{{ error }}</div> -->
-<!-- <app-alert *ngIf="error" [message]="error"></app-alert> -->
-
-<div [class.hide-progress]="!isLoading" class="progress auth-progress">
+<div
+  [class.hide-progress]="!(isLoading | async)"
+  class="progress auth-progress"
+>
   <div
-    *ngIf="isLoading"
+    *ngIf="isLoading | async"
     class="progress-bar progress-bar-striped active"
     role="progressbar"
     aria-valuenow="100"

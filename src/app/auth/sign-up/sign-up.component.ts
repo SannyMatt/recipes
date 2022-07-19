@@ -23,18 +23,34 @@ import {
   styleUrls: ['./sign-up.component.css'],
 })
 export class SignUpComponent implements OnInit, OnDestroy {
+  constructor(
+    private store: Store<AppState>,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+  //INIT
+  ngOnInit(): void {}
+  //DESTROY
+  authStoreSub?: Subscription;
+  ngOnDestroy(): void {
+    this.store.dispatch(clearAuthSignUpStore());
+    this.authStoreSub?.unsubscribe();
+  }
+
+  //STORE
   error: Observable<string> = this.store.select(selectAuthStoreError);
   confirmationMode: Observable<boolean> = this.store.select(
     selectAuthStoreConfirmationState
   );
+
+  //FORM
   signupForm: FormGroup = new FormGroup({
     email: new FormControl('', [Validators.email, Validators.required]),
     password: new FormControl('', [Validators.required]),
-    phone: new FormControl('', [Validators.min(10)]),
     fname: new FormControl('', [Validators.min(2)]),
     lname: new FormControl('', [Validators.min(2)]),
   });
-
+  //[Form] inputs
   get emailInput() {
     return this.signupForm.get('email');
   }
@@ -47,16 +63,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
   get lnameInput() {
     return this.signupForm.get('lname');
   }
-  get phoneInput() {
-    return this.signupForm.get('phone');
-  }
-
-  constructor(
-    private store: Store<AppState>,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
-
+  //[Form] Errors
   getEmailInputError() {
     if (this.emailInput?.hasError('email')) {
       return 'Please enter a valid email address.';
@@ -66,13 +73,13 @@ export class SignUpComponent implements OnInit, OnDestroy {
     }
     return '';
   }
-
   getPasswordInputError() {
     if (this.passwordInput?.hasError('required')) {
       return 'A password is required.';
     }
     return '';
   }
+  //[Form] Submit
   shouldEnableSubmit() {
     return (
       !this.emailInput?.valid ||
@@ -82,24 +89,22 @@ export class SignUpComponent implements OnInit, OnDestroy {
     );
   }
   signUp() {
+    this.store.dispatch(clearError());
     const signUpFormValues: SignUpUserData = {
       email: this.emailInput?.value,
       password: this.passwordInput?.value,
       firstName: this.fnameInput?.value,
       lastName: this.lnameInput?.value,
     };
-    this.store.dispatch(clearError());
     this.store.dispatch(signUpStart(signUpFormValues));
   }
-  getError(error: any) {
-    console.log(error, 'error I need');
-  }
+
+  //CONFIRMATION Mode
 
   closeConfirmationMode() {
     this.signupForm.reset();
     this.store.dispatch(closeConfirmationMode());
   }
-
   signInWithConfirmation() {
     this.store.dispatch(
       signInFromConfirmationMode({
@@ -109,12 +114,5 @@ export class SignUpComponent implements OnInit, OnDestroy {
     );
 
     this.router.navigate(['../sign-in'], { relativeTo: this.route });
-  }
-
-  authStoreSub?: Subscription;
-  ngOnInit(): void {}
-  ngOnDestroy(): void {
-    this.store.dispatch(clearAuthSignUpStore());
-    this.authStoreSub?.unsubscribe();
   }
 }

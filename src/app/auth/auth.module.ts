@@ -5,7 +5,6 @@ import { SignUpComponent } from './sign-up/sign-up.component';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { AuthRoutingModule } from './auth-routing.module';
 import { ProfileComponent } from './profile/profile.component';
-import { ConfirmationComponent } from './confirmation/confirmation.component';
 
 @NgModule({
   declarations: [
@@ -13,7 +12,6 @@ import { ConfirmationComponent } from './confirmation/confirmation.component';
     SignUpComponent,
     SignInComponent,
     ProfileComponent,
-    ConfirmationComponent,
   ],
   imports: [SharedModule, AuthRoutingModule],
 })

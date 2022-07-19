@@ -1,10 +1,8 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Hub } from 'aws-amplify';
-import { map, Observable, Subscription, tap } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
 
-import { logout, signOut } from '../auth/store/auth.actions';
+import { signOut } from '../auth/store/auth.actions';
 import { fetchRecipes, storeRecipes } from '../recipes/store/recipes.actions';
 import { AppState } from '../store/app.reducer';
 

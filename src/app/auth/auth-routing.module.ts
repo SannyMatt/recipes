@@ -6,8 +6,6 @@ import { ProfileComponent } from './profile/profile.component';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { SignUpComponent } from './sign-up/sign-up.component';
 import { UnathGuard } from './unauth.guard';
-import { ConfirmationComponent } from './confirmation/confirmation.component';
-import { ConfirmationResolverService } from './confirmation/confirmation-resolver.service';
 
 const routes: Routes = [
   {
@@ -33,12 +31,7 @@ const routes: Routes = [
       },
     ],
   },
-  {
-    path: 'confirmation',
-    component: ConfirmationComponent,
-    canActivate: [UnathGuard],
-    resolve: [ConfirmationResolverService],
-  },
+
   {
     path: 'profile',
     component: ProfileComponent,

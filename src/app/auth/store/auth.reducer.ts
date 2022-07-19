@@ -1,4 +1,3 @@
-import { state } from '@angular/animations';
 import { createReducer, on } from '@ngrx/store';
 import { UserModel } from '../user.model.';
 import {
@@ -10,7 +9,6 @@ import {
   clearError,
   closeConfirmationMode,
   confirmationWithSignInStart,
-  logout,
   setInMemoryCredentialsStatus,
   signInFromConfirmationMode,
   signInStart,
@@ -50,27 +48,10 @@ const initialState: State = {
 
 export const authReducer = createReducer(
   initialState,
+
+  //Common => Actions
   on(authenticate, (state, { user, redirect }) => {
     return { ...state, user, loading: false, redirect: redirect || false };
-  }),
-  on(signInStart, (state, { userNotConfirmed }) => {
-    return { ...state, loading: true, userNotConfirmed };
-  }),
-  on(signInWithSIP, (state) => {
-    return { ...state, loading: true };
-  }),
-  on(signInFromConfirmationMode, (state, { email, password }) => ({
-    ...state,
-    confirm: { email, password },
-    userNotConfirmed: true,
-    inMemoryCredentials: true,
-  })),
-  on(setInMemoryCredentialsStatus, (state, { inMemoryCredentials }) => ({
-    ...state,
-    inMemoryCredentials,
-  })),
-  on(signUpStart, (state) => {
-    return { ...state, loading: true };
   }),
   on(authenticationFailed, (state, { errorMessage, userNotConfirmed }) => {
     return {
@@ -80,23 +61,52 @@ export const authReducer = createReducer(
       userNotConfirmed: userNotConfirmed || state.userNotConfirmed,
     };
   }),
+  on(checkSession, (state) => {
+    return { ...state, loading: true };
+  }),
   on(clearError, (state) => ({ ...state, errorMessage: '' })),
   on(clearAuthStore, (state) => ({ ...initialState, user: state.user })),
+
+  //Sign in => Actions
+  on(signInStart, (state, { userNotConfirmed }) => {
+    return { ...state, loading: true, userNotConfirmed };
+  }),
+  on(signInWithSIP, (state) => {
+    return { ...state, loading: true };
+  }),
+  on(confirmationWithSignInStart, (state) => ({ ...state, loading: true })),
+  on(setInMemoryCredentialsStatus, (state, { inMemoryCredentials }) => ({
+    ...state,
+    inMemoryCredentials,
+  })),
+  on(switchToConfirmMode, (state) => ({ ...state, userNotConfirmed: true })),
+  on(switchToLoginMode, (state) => ({ ...state, userNotConfirmed: false })),
+
+  //Sign up => Actions
+  on(signUpStart, (state) => {
+    return { ...state, loading: true };
+  }),
+  on(signUpSuccess, (state) => ({
+    ...state,
+    confirmationMode: true,
+    loading: false,
+  })),
   on(clearAuthSignUpStore, (state) => ({
     ...initialState,
     userNotConfirmed: state.userNotConfirmed,
     confirm: state.confirm,
     inMemoryCredentials: state.inMemoryCredentials,
   })),
-
-  on(logout, (state) => ({
+  on(signInFromConfirmationMode, (state, { email, password }) => ({
     ...state,
-    loading: false,
-    user: null,
+    confirm: { email, password },
+    userNotConfirmed: true,
+    inMemoryCredentials: true,
   })),
-  on(checkSession, (state) => {
-    return { ...state, loading: true };
-  }),
+
+  on(closeConfirmationMode, (state) => ({ ...state, confirmationMode: false })),
+
+  //Sign Out => Actions
   on(signOut, (state) => ({
     ...state,
     loading: true,
@@ -104,18 +114,9 @@ export const authReducer = createReducer(
   on(signOutSuccess, () => {
     return initialState;
   }),
-  on(signUpSuccess, (state) => ({
-    ...state,
-    confirmationMode: true,
-    loading: false,
-  })),
   on(signOutFail, (state, { errorMessage }) => ({
     ...state,
     loading: false,
     errorMessage,
-  })),
-  on(closeConfirmationMode, (state) => ({ ...state, confirmationMode: false })),
-  on(confirmationWithSignInStart, (state) => ({ ...state, loading: true })),
-  on(switchToConfirmMode, (state) => ({ ...state, userNotConfirmed: true })),
-  on(switchToLoginMode, (state) => ({ ...state, userNotConfirmed: false }))
+  }))
 );

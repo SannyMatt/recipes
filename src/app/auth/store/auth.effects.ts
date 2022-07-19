@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
 import { CognitoUser } from 'amazon-cognito-identity-js';
 import { Auth } from 'aws-amplify';
 import { catchError, exhaustMap, from, map, of, tap } from 'rxjs';
-import { AppState } from 'src/app/store/app.reducer';
 import { AuthService } from '../auth.service';
 import { UserModel } from '../user.model.';
 import {
@@ -13,7 +11,6 @@ import {
   authenticationFailed,
   checkSession,
   confirmationWithSignInStart,
-  logout,
   signInStart,
   signInWithSIP,
   signOut,
@@ -22,66 +19,14 @@ import {
   signUpStart,
   signUpSuccess,
 } from './auth.actions';
-export interface AuthResponseData {
-  kind: string;
-  idToken: string;
-  email: string;
-  refreshToken: string;
-  expiresIn: string;
-  localId: string;
-  registered?: boolean;
-}
+
 export interface SignUpUserData {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
 }
-export interface AuthResponseCognitoData {
-  kind: string;
-  idToken: string;
-  email: string;
-  refreshToken: string;
-  expiresIn: string;
-  localId: string;
-  registered?: boolean;
-}
 
-// () =>
-//   this.actions$.pipe(
-//     ofType(signUpStart),
-//     exhaustMap((action) => {
-//       return this.http
-//         .post<AuthResponseData>(
-//           'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
-//             environment.FIREBASE_API_KEY,
-//           {
-//             email: action.email,
-//             password: action.password,
-//             returnSecureToken: true,
-//           }
-//         )
-//         .pipe(
-//           map((resData) => {
-//             const user = handleAuthentication(
-//               +resData.expiresIn,
-//               resData.email,
-//               resData.localId,
-//               resData.idToken
-//             );
-
-//             return authenticate({ user, redirect: true });
-//           }),
-//           catchError((errorRes) => {
-//             return of(
-//               authenticationFailed({
-//                 errorMessage: getErrorMessage(errorRes.error),
-//               })
-//             );
-//           })
-//         );
-//     })
-//   );
 @Injectable()
 export class AuthEffects {
   login$ = createEffect(() =>
@@ -164,24 +109,20 @@ export class AuthEffects {
       })
     )
   );
-  loginSocialIdentityProvider$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(signInWithSIP),
-      exhaustMap((action) => {
-        action.provider;
-        return from(
-          Auth.federatedSignIn({
-            provider: action.provider,
-          })
-        ).pipe(
-          map((socialResult) => {
-            console.log(socialResult, 'socialResult');
-
-            return { type: ' ' };
-          })
-        );
-      })
-    )
+  //TODO Handle Errors
+  loginSocialIdentityProvider$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(signInWithSIP),
+        exhaustMap((action) => {
+          return from(
+            Auth.federatedSignIn({
+              provider: action.provider,
+            })
+          );
+        })
+      ),
+    { dispatch: false }
   );
   signOut$ = createEffect(() =>
     this.actions$.pipe(
@@ -239,7 +180,6 @@ export class AuthEffects {
       })
     )
   );
-
   checkSession$ = createEffect(() =>
     this.actions$.pipe(
       ofType(checkSession),
@@ -302,7 +242,7 @@ export class AuthEffects {
   authLogout$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(logout),
+        ofType(signOutSuccess),
         tap(() => {
           this.authService.clearLogoutTimer();
           localStorage.removeItem('userData');
@@ -316,22 +256,9 @@ export class AuthEffects {
   );
   constructor(
     private actions$: Actions,
-    private store: Store<AppState>,
     private router: Router,
     private authService: AuthService
   ) {}
-}
-
-function handleAuthentication(
-  expiresIn: number,
-  email: string,
-  userId: string,
-  token: string
-) {
-  const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
-  const user = new UserModel(email, userId, token, expirationDate);
-  localStorage.setItem('userData', JSON.stringify(user));
-  return user;
 }
 
 function getErrorMessage(error: { message: string }): string {
